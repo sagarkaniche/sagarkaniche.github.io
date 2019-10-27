@@ -3998,6 +3998,10 @@ input, select, textarea {
 
 		@media screen and (max-width: 480px) {
 
+			.wrapper.spotlight:nth-child(2n - 1) .inner {
+				text-align: center;
+			}
+
 			.wrapper.spotlight .inner {
 				display: block;
 			}
@@ -4166,6 +4170,8 @@ input, select, textarea {
 
 	}
 
+
+
 .tileimages-layout
 {
     /* width: 2 00p */
@@ -4177,8 +4183,26 @@ input, select, textarea {
                float: left;
 }
 
+@media screen and (max-width: 480px) {
+	.tileimages-layout {
+		width: 50%;
+	}
+}
+
 .row::after {
   content: "";
   clear: both;
   display: table;
+}
+
+@media screen and (max-width: 480px) {
+	.not-on-mobile {
+		display: none
+	}
+}
+
+@media screen and (min-width: 480px) {
+	.only-on-mobile {
+		display: none
+	}
 }
