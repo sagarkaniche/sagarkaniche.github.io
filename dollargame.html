@@ -1,0 +1,253 @@
+<!-- Apologies for the shitty code -->
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+</style>
+<script>
+  var cellLocationSet = new Set();
+  var activeCellID = -1;
+  var arenaLength = 30;
+  var moveCounter = 0;
+
+  window.onload = function(){
+    var zone = document.getElementById('gamezone');
+    var label = document.getElementById('zonelabels');
+    for (var i = 0; i < arenaLength; i++) {
+      zone.insertCell(i);
+      var cell = zone.cells[i];
+      var id = i.toString();
+      cell.id = id;
+      cell.style.width = (100/arenaLength).toString() + "%"; 
+      cell.onclick = createSelectCell(cell);
+
+      label.insertCell(i)
+      label.cells[i].innerHTML = i.toString();
+    }
+    newGame();
+  }
+
+  function createSelectCell(x) {
+    return function() {
+      selectCell(x)
+    };
+  }
+  function checkEnd() {
+    var gamend = true;
+    for(var i=0;i<6;i++) if (!cellLocationSet.has(i)) {
+      gamend = false;
+    }
+    deactivateEnd();
+    return gamend;
+  }
+  function computerMove() {    
+    var state = []
+    var prev = -1;
+    var r=0;
+    for (var i = arenaLength - 1; i >= 0; i--) {
+      if(cellLocationSet.has(i)){
+        state.push(i);
+        if(prev != -1) {
+          r=r^(prev-i-1);
+          prev = -1;
+        }
+        else prev = i;
+      }
+    }
+
+
+    for(var i = 0; i < state.length-1; i+=2) {
+      var diff = state[i] - state[i+1] - 1; 
+      var x = diff - (r^diff);
+      if (x > 0 && x <= diff) {
+       var zone = document.getElementById('gamezone');
+       zone.cells[state[i]].innerHTML =''
+       zone.cells[state[i]-x].innerHTML = 'coin'
+       cellLocationSet.delete(state[i])
+       cellLocationSet.add(state[i]-x)
+       addMove("Computer:".concat(state[i].toString()," -> ",(state[i]-x).toString()));
+       if(checkEnd()) alert("Game Over: ".concat("Computer wins"));
+       return;
+     }
+     else if(x<0) {
+      var prediff = 0;
+      if(i==state.length-2) prediff = state[i+1];
+      else prediff = state[i+1] - state[i+2] - 1;
+      if((prediff + x) >= 0 ){
+        var zone = document.getElementById('gamezone');
+        zone.cells[state[i+1]].innerHTML =''
+        zone.cells[state[i+1]+x].innerHTML = 'coin'
+        cellLocationSet.delete(state[i+1])
+        cellLocationSet.add(state[i+1]+x)
+        addMove("Computer:".concat(state[i+1].toString()," -> ",(state[i+1]+x).toString()));
+        if(checkEnd()) alert("Game Over: ".concat("Computer wins"));
+        return;
+      }
+    }
+  }
+  state.push(0);
+  while(1){
+    var index = Math.floor(Math.random() * (state.length-1));
+    var temp = state[index]-1;
+    var ss = temp - state[index+1];
+    while(1 <= ss)
+    {
+      var decider = Math.floor(Math.random() * 10);
+      if(decider < 5) {
+        var zone = document.getElementById('gamezone');
+        zone.cells[state[index]].innerHTML =''
+        zone.cells[temp].innerHTML = 'coin'
+        cellLocationSet.delete(state[index])
+        cellLocationSet.add(temp)
+        addMove("Computer:".concat(state[i].toString()," -> ",temp.toString()));
+        if(checkEnd()) alert("Game Over: ".concat("Computer wins"));
+        return;
+      }
+      temp--;
+      ss = temp - state[index+1];
+    }
+  }
+  // You are a curious one. I like you.
+  // The games is based on bogus num. You can read about it here: https://www.codechef.com/wiki/tutorial-coin-game#A_Coin_Game_-_The_Silver_Dollar_Game_-_Bogus_Nim
+}
+
+function newGame() {
+  activeCellID = -1;
+  arenaLength = 30;
+  moveCounter = 0;
+  var zone = document.getElementById('gamezone');
+  cellLocationSet.clear();
+  cellLocationSet.add(0);
+  cellLocationSet.add(29);
+  while(cellLocationSet.size < 6) {
+    var temp = Math.floor(Math.random() * 30);
+    cellLocationSet.add(temp);
+  }
+
+  for(var i = 0; i < arenaLength; i++){
+    zone.cells[i].innerHTML = "";
+    zone.cells[i].style.background = "#ffffff";
+  }
+
+  for(var elem of cellLocationSet){
+    zone.cells[elem].innerHTML = "coin";
+  }
+
+  clearMoves();
+
+}
+
+function selectCell(currentCell) {
+  var currentCellID = Number(currentCell.id)
+  if (cellLocationSet.has(currentCellID)) {
+    if(activeCellID > 0) {
+      document.getElementById('gamezone').cells[activeCellID].style.color ='black';
+      for(var i = activeCellID-1; i >=0; i--){
+        if (cellLocationSet.has(i)) break;
+        document.getElementById('gamezone').cells[i].style.background ='none';
+      }
+    }
+    currentCell.style.color = "#0000ff";
+    activeCellID = currentCellID;
+    for(var i = activeCellID-1; i >=0; i--){
+      if (cellLocationSet.has(i)) break;
+      document.getElementById('gamezone').cells[i].style.background ='rgba(0,100,0,0.3)';
+    }
+  }
+  else if(activeCellID > 0) {
+    var invalidMove = (currentCellID >= activeCellID);
+    for (var i = currentCellID; i < activeCellID ; i++) {
+      if (cellLocationSet.has(i)) {
+        invalidMove = true;
+      }
+    }
+    if(invalidMove){
+      alert("invalid move");
+    }
+    else{
+      var activeCell = document.getElementById('gamezone').cells[activeCellID];
+      activeCell.innerHTML = '';
+      activeCell.style.color ='black';
+      currentCell.innerHTML = 'coin';
+      for(var i = activeCellID-1; i >=0; i--){
+        if (cellLocationSet.has(i)) break;
+        document.getElementById('gamezone').cells[i].style.background ='none';
+      }
+      cellLocationSet.delete(activeCellID)
+      cellLocationSet.add(currentCellID)
+      addMove("You:".concat(activeCellID.toString()," -> ",currentCellID.toString()));
+      activeCellID = -1;
+      if(checkEnd()) alert("Game Over: ".concat("You win"));
+      else setTimeout(computerMove, 300);
+      
+    }
+  }
+}
+
+function addMove(str) {
+    var moves = document.getElementById('moves');
+    var para = document.createElement("p");
+    var node = document.createTextNode(str);
+    para.appendChild(node);
+    moves.appendChild(para);
+}
+function clearMoves()
+{
+  var moves = document.getElementById('moves');
+  var children = moves.children;
+  while(children.length > 0) {
+    var moveChild = children[0];
+    moves.removeChild(moveChild)
+  }
+}
+
+function deactivateEnd()
+{
+    for (var i = arenaLength-1; i >=0 ; i--) {
+      if (cellLocationSet.has(i)) break
+      else {
+        document.getElementById('gamezone').cells[i].style.background ='rgba(100,0,0,0.3)';
+      }
+    }
+}
+
+
+</script>
+</head>
+<body>
+<!-- <table style="width:100%; border: 0px;">
+  <tr>
+    <td style="width: 50%; border:0px;"><h2>A Dollar Game</h2></td>
+    <td style="width: 50%; border:0px; text-align: center;"><h2>Sasta AI</h2></td>
+  </tr>
+</table>-->
+<h2>A Dollar Game (sasta AI)</h2>
+<p>You'll be playing against the computer. Rules are simple - </p>
+<p>1. In any move, a player must take a coin and move it to the left. A cell can hold only one coin at a time and a coin cannot jump over another coin</p>
+<p>2. One who cannot move the coin anymore loses the game</p>
+<button onclick="newGame()" style="width: 80px; height: 40px; padding: 4px 8px; font-size: 16px; text-align: center; cursor: pointer;">Restart</button>
+<br>
+<br>
+<br>
+<table style="width:100%" id="zonetable">
+  <tr id="gamezone">
+
+  </tr>
+  <tr id="zonelabels">
+  </tr>
+</table>
+<p>*click on 'coin' to move it</p>
+<br><br>
+
+<div id="moves">
+
+</div>
+
+
+
+</body>
+</html>
