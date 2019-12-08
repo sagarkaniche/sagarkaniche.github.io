@@ -103,7 +103,7 @@ table, th, td {
         zone.cells[temp].innerHTML = 'coin'
         cellLocationSet.delete(state[index])
         cellLocationSet.add(temp)
-        addMove("Computer:".concat(state[i].toString()," -> ",temp.toString()));
+        addMove("Computer:".concat(state[index].toString()," -> ",temp.toString()));
         if(checkEnd()) alert("Game Over: ".concat("Computer wins"));
         return;
       }
